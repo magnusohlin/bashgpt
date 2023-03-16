@@ -1,5 +1,7 @@
 # ʕ·ᴥ·ʔ BashGPT
 
+![bashgpt](https://user-images.githubusercontent.com/521837/225560741-9872664c-d483-416a-888e-096970e33ceb.png)
+
 BashGPT is a simple command-line interface to interact with OpenAI's GPT-3.5-turbo model. It allows users to chat with the model directly from their terminal and even open the latest response in Vim for further editing.
 
 ## Prerequisites
