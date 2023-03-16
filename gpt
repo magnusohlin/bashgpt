@@ -46,7 +46,7 @@ while true; do
   chat_history+="{\"role\": \"assistant\", \"content\": \"$(echo -e "${response}" | tr -d '\n')\"},"
 
   # Print the response
-  trimmed_response=$(echo -n "$response" | awk 'BEGIN{ORS=""} {print $0}')
+  trimmed_response=$(echo "$response" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | awk 'NF')
   echo -e "${BOLD}${GREEN}ʕᵔᴥᵔʔ > $trimmed_response${RESET}"
 
   read -p "user  > " prompt
