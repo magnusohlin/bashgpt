@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Define ChatGPT API key and endpoint
+API_KEY="openai_api_key"
+ENDPOINT="https://api.openai.com/v1/chat/completions"
+
+# ANSI escape codes for colors and styles
+RED='\033[31m'
+GREEN='\033[32m'
+YELLOW='\033[33m'
+BLUE='\033[34m'
+MAGENTA='\033[35m'
+CYAN='\033[36m'
+RESET='\033[0m'
+BOLD='\033[1m'
+
+# Separator
+separator="${CYAN}----------------------------------------${RESET}"
+
+# Initialize chat history
+chat_history=""
+
+# Get the first user input
+echo -e "$separator\n"
+echo -e "${BOLD}${BLUE}ʕ·ᴥ·ʔ Welcome to bashGPT!${RESET}"
+echo -e "\n\n${BOLD}${MAGENTA}// Type 'vi' in the prompt to open${RESET}"
+echo -e "${BOLD}${MAGENTA}// the latest response in vim.${RESET}"
+echo -e "\n$separator"
+echo -e "\n"
+read -p "user  > " prompt
+
+while true; do
+  # Add user message to chat history
+  chat_history="${chat_history}{\"role\": \"user\", \"content\": \"${prompt}\"},"
+
+  # Call ChatGPT API
+  response=$(curl -s -X POST $ENDPOINT \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $API_KEY" \
+    -d "{\"model\": \"gpt-3.5-turbo\", \"messages\": [${chat_history%?}], \"temperature\": 0.7}" \
+    | jq -r '.choices[0].message.content' \
+    | awk '{$1=$1};1' \
+  )
+
+  # Add AI message to chat history
+  chat_history+="{\"role\": \"assistant\", \"content\": \"$(echo -e "${response}" | tr -d '\n')\"},"
+
+  # Print the response
+  trimmed_response=$(echo -n "$response" | awk 'BEGIN{ORS=""} {print $0}')
+  echo -e "${BOLD}${GREEN}ʕᵔᴥᵔʔ > $trimmed_response${RESET}"
+
+  read -p "user  > " prompt
+
+  if [ "$prompt" == "vi" ]; then
+    # Open the last response in vim as an unsaved file
+    echo "$response" | vim -
+    break
+  fi
+done
