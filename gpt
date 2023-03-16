@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# Define ChatGPT API key and endpoint
-API_KEY="openai_api_key"
+# Define ChatGPT API endpoint
 ENDPOINT="https://api.openai.com/v1/chat/completions"
 
 # ANSI escape codes for colors and styles
@@ -19,6 +18,27 @@ separator="${CYAN}----------------------------------------${RESET}"
 
 # Initialize chat history
 chat_history=""
+
+# Read API key from environment variable or command-line argument
+API_KEY="${OPENAI_API_KEY:-}"
+
+while getopts ":k:" opt; do
+  case $opt in
+    k)
+      API_KEY="$OPTARG"
+      ;;
+    \?)
+      echo "Usage: gpt [-k api_key]"
+      exit 1
+      ;;
+  esac
+done
+
+if [ -z "$API_KEY" ]; then
+  echo "Error: API key not provided."
+  echo "Please set the OPENAI_API_KEY environment variable or use the -k option followed by your key."
+  exit 1
+fi
 
 # Get the first user input
 echo -e "$separator\n"
