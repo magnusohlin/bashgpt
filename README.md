@@ -52,6 +52,14 @@ If you prefer to provide the API key as a command-line argument instead of using
 gpt -k your_api_key_here
 ```
 
+If you like to specify which chat engine to use you can do that as well with the -e option (default gpt-3.5-turbo):
+
+```
+gpt -e gpt-4
+```
+
+
+
 ## License
 
 This project is licensed under the MIT License.
