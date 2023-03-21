@@ -21,14 +21,18 @@ chat_history=""
 
 # Read API key from environment variable or command-line argument
 API_KEY="${OPENAI_API_KEY:-}"
+ENGINE="gpt-3.5-turbo"
 
-while getopts ":k:" opt; do
+while getopts ":k:e:" opt; do
   case $opt in
     k)
       API_KEY="$OPTARG"
       ;;
+    e)
+      ENGINE="$OPTARG"
+      ;;
     \?)
-      echo "Usage: gpt [-k api_key]"
+      echo "Usage: gpt [-k api_key] [-e engine]"
       exit 1
       ;;
   esac
@@ -43,8 +47,8 @@ fi
 # Get the first user input
 echo -e "$separator\n"
 echo -e "${BOLD}${BLUE}ʕ·ᴥ·ʔ Welcome to bashGPT!${RESET}"
-echo -e "\n\n${BOLD}${MAGENTA}// Type 'vi' in the prompt to open${RESET}"
-echo -e "${BOLD}${MAGENTA}// the latest response in vim.${RESET}"
+echo -e "\n\n${BOLD}${MAGENTA}// Type 'vi' or 'code' in the prompt to open${RESET}"
+echo -e "${BOLD}${MAGENTA}// the latest response in vim or vscode.${RESET}"
 echo -e "\n$separator"
 echo -e "\n"
 read -p "user  > " prompt
@@ -75,5 +79,10 @@ while true; do
     # Open the last response in vim as an unsaved file
     echo "$response" | vim -
     break
+  fi
+
+  if [ "$prompt" == "code" ]; then
+    # Open the last response in Visual Studio Code as a new unsaved file
+    echo "$response" | code --new-window --wait --pipe
   fi
 done
