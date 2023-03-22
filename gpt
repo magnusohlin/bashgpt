@@ -53,7 +53,9 @@ echo -e "\n$separator"
 echo -e "\n"
 read -p "user  > " prompt
 
-while true; do
+end_loop=false
+
+while ! $end_loop; do
   # Add user message to chat history
   chat_history="${chat_history}{\"role\": \"user\", \"content\": \"${prompt}\"},"
 
@@ -78,11 +80,12 @@ while true; do
   if [ "$prompt" == "vi" ]; then
     # Open the last response in vim as an unsaved file
     echo "$response" | vim -
-    break
+    end_loop=true
   fi
 
   if [ "$prompt" == "code" ]; then
     # Open the last response in Visual Studio Code as a new unsaved file
     echo "$response" | code --new-window --wait -
+    end_loop=true
   fi
 done
