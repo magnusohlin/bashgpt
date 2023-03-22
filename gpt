@@ -83,6 +83,6 @@ while true; do
 
   if [ "$prompt" == "code" ]; then
     # Open the last response in Visual Studio Code as a new unsaved file
-    echo "$response" | code --new-window --wait --pipe
+    echo "$response" | code --new-window --wait -
   fi
 done
