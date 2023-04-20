@@ -53,39 +53,71 @@ echo -e "\n$separator"
 echo -e "\n"
 read -p "user  > " prompt
 
+# Function to handle streaming response
+handle_streaming_response() {
+  response=""
+  print_prompt=true
+  printf "${BOLD}${GREEN}ʕᵔᴥᵔʔ > ${RESET}"
+
+  while IFS= read -r line; do
+    if [[ $line == *"data:"* ]]; then
+      content=$(echo "$line" | sed 's/^data: //')
+
+      if echo "$content" | grep -q "\[DONE\]"; then
+        break
+      fi
+
+      if echo "$content" | grep -q "delta"; then
+        delta_content=$(echo "$content" | jq -r '.choices[0].delta.content // ""')
+
+        if [ ! -z "$delta_content" ]; then
+          response+="$delta_content"
+          printf "$delta_content"
+        fi
+      fi
+
+      if echo "$content" | grep -q "finish_reason"; then
+        finish_reason=$(echo "$content" | jq -r '.choices[0].finish_reason')
+
+        if [[ "$finish_reason" != "stop" ]]; then
+          print_prompt=true
+        fi
+      fi
+    fi
+  done
+}
+
 end_loop=false
 
 while ! $end_loop; do
   # Add user message to chat history
   chat_history="${chat_history}{\"role\": \"user\", \"content\": \"${prompt}\"},"
 
-  # Call ChatGPT API
-  response=$(curl -s -X POST $ENDPOINT \
+  # Call ChatGPT API with streaming
+  response=""
+  (curl -s --http2 --no-buffer -X POST $ENDPOINT \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $API_KEY" \
-    -d "{\"model\": \"$ENGINE\", \"messages\": [${chat_history%?}], \"temperature\": 0.7}" \
-    | jq -r '.choices[0].message.content' \
-    | awk '{$1=$1};1' \
-  )
+    -d "{\"model\": \"$ENGINE\", \"messages\": [${chat_history%?}], \"temperature\": 0.7, \"stream\": true}" \
+  ) | handle_streaming_response
 
   # Add AI message to chat history
   chat_history+="{\"role\": \"assistant\", \"content\": \"$(echo -e "${response}" | tr -d '\n')\"},"
 
-  # Print the response
-  trimmed_response=$(echo "$response" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | awk 'NF')
-  echo -e "${BOLD}${GREEN}ʕᵔᴥᵔʔ > $trimmed_response${RESET}"
-
+  echo
   read -p "user  > " prompt
 
   if [ "$prompt" == "vi" ]; then
     # Open the last response in vim as an unsaved file
     echo "$response" | vim -
     end_loop=true
+    break
   fi
 
   if [ "$prompt" == "code" ]; then
     # Open the last response in Visual Studio Code as a new unsaved file
     echo "$response" | code --new-window --wait -
     end_loop=true
+    break
   fi
 done
